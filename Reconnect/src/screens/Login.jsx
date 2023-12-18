@@ -143,12 +143,7 @@ export const Login = ({ navigation, route }) => {
           }}
         >
           <Text style={{ color: "grey" }}>{"Don't have an account?"}</Text>
-          <TouchableOpacity
-            // onPress={() => navigation.navigate("Register")}
-            onPress={async () => {
-              submitLogin();
-            }}
-          >
+          <TouchableOpacity onPress={() => navigation.navigate("Register")}>
             <Text style={{ fontWeight: "bold", color: "#45008b" }}>
               Sign Up
             </Text>

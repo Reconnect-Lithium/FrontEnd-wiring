@@ -23,12 +23,12 @@ export const MainStack = ({ navigation, route }) => {
         component={Register}
       />
       <Stack.Screen
-        name="Owner"
+        name="RegisterOwner"
         options={{ headerShown: false }}
         component={RegisterOwner}
       />
       <Stack.Screen
-        name="User"
+        name="RegisterUser"
         options={{ headerShown: false }}
         component={RegisterUser}
       />
