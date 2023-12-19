@@ -34,6 +34,8 @@ export const Login = ({ navigation, route }) => {
       }); // productions
       // console.log(data);
       await SecureStore.setItemAsync("auth", data.access_token);
+      await SecureStore.setItemAsync("userId", data.id);
+      await SecureStore.setItemAsync("userRole", data.role);
       navigation.navigate("Success");
     } catch (error) {
       console.log(error, ">>>>>>>>");

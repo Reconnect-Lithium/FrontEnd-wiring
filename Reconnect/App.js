@@ -4,10 +4,10 @@ import { LoginProvider } from "./context/isLogin";
 
 export default function App() {
   return (
-    // <LoginProvider>
-    <NavigationContainer>
-      <MainStack />
-    </NavigationContainer>
-    // </LoginProvider>
+    <LoginProvider>
+      <NavigationContainer>
+        <MainStack />
+      </NavigationContainer>
+    </LoginProvider>
   );
 }

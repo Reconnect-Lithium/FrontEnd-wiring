@@ -10,8 +10,11 @@ import {
   Platform,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import { useContext } from "react";
+import { LoginContext } from "../../context/isLogin";
 
 export const TopBar = () => {
+  const { LogoutActions } = useContext(LoginContext);
   const handleLogout = () => {
     Alert.alert("Logout Confirmation", "Are you sure you want to Logout?", [
       {
@@ -19,7 +22,7 @@ export const TopBar = () => {
         onPress: () => console.log("Cancel Logout"),
         style: "cancel",
       },
-      { text: "Yes", onPress: () => console.log("Logout") },
+      { text: "Yes", onPress: () => LogoutActions("auth") },
     ]);
   };
 
