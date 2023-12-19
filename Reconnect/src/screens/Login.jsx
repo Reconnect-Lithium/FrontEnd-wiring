@@ -11,8 +11,12 @@ import { useState } from "react";
 import * as SecureStore from "expo-secure-store";
 import { publicRoute } from "../../url/route";
 import axios from "axios";
+import { useContext } from "react";
+import { LoginContext } from "../../context/isLogin";
 
 export const Login = ({ navigation, route }) => {
+  const { setIsLogin } = useContext(LoginContext);
+
   const [eyes, setEyes] = useState(false);
   const [form, setForm] = useState({
     email: "",
@@ -34,9 +38,9 @@ export const Login = ({ navigation, route }) => {
       }); // productions
       // console.log(data);
       await SecureStore.setItemAsync("auth", data.access_token);
-      await SecureStore.setItemAsync("userId", data.id);
+      await SecureStore.setItemAsync("userId", `data.id`);
       await SecureStore.setItemAsync("userRole", data.role);
-      navigation.navigate("Success");
+      setIsLogin(true);
     } catch (error) {
       console.log(error, ">>>>>>>>");
     }

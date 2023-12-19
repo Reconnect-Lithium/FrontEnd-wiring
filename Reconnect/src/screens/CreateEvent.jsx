@@ -12,25 +12,24 @@ import {
 import { TopBar } from "../components/TopBar";
 
 export const CreateEvent = () => {
+  const bodyFormData = new FormData();
+  const [description, setDescription] = useState("");
+
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("");
-
   const categories = ["Category 1", "Category 2", "Category 3", "Category 4"];
 
   const handleSelectCategory = (category) => {
     setSelectedCategory(category);
     setCategoryModalVisible(false);
   };
-
   const closeModal = () => setCategoryModalVisible(false);
-
   const validateTime = (time) => {
     const regex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
     return regex.test(time);
   };
-
   const handleTimeChange = (text, setTime) => {
     const newTime = text.replace(/[^0-9]/g, "");
     if (newTime.length >= 2) {
@@ -39,7 +38,6 @@ export const CreateEvent = () => {
       setTime(newTime);
     }
   };
-
   const submitTime = (time, setTime) => {
     if (validateTime(time)) {
       setTime(time);
@@ -47,6 +45,8 @@ export const CreateEvent = () => {
       alert("Invalid time format. Please use HH:mm format.");
     }
   };
+
+  console.log(description);
 
   return (
     <View style={styles.container}>
@@ -84,6 +84,9 @@ export const CreateEvent = () => {
           <Text style={styles.label}>Description</Text>
           <TextInput
             style={styles.input}
+            onChangeText={(value) => {
+              setDescription(value);
+            }}
             placeholder="Enter Description"
             multiline
           />
