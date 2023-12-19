@@ -3,18 +3,18 @@ import { View, Image, FlatList, StyleSheet, Dimensions } from "react-native";
 
 const { width } = Dimensions.get("window");
 
-const images = [
-  { id: "1", uri: "https://via.placeholder.com/150" },
-  { id: "2", uri: "https://via.placeholder.com/150" },
-  { id: "3", uri: "https://via.placeholder.com/150" },
-];
+// const images = [
+//   { id: "1", uri: "https://via.placeholder.com/150" },
+//   { id: "2", uri: "https://via.placeholder.com/150" },
+//   { id: "3", uri: "https://via.placeholder.com/150" },
+// ];
 
-export const Gallery = () => {
+export const Gallery = ({ galleryPhoto }) => {
   const imageWidth = width / 2 - 8;
   return (
     <View style={styles.container}>
       <FlatList
-        data={images}
+        data={galleryPhoto}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View
@@ -23,7 +23,7 @@ export const Gallery = () => {
               { width: imageWidth, height: imageWidth },
             ]}
           >
-            <Image source={{ uri: item.uri }} style={styles.image} />
+            <Image source={{ uri: item }} style={styles.image} />
           </View>
         )}
         numColumns={2}

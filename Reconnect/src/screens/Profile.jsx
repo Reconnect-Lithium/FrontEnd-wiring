@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -14,33 +14,148 @@ import { Gallery } from "../components/Gallery";
 import { History } from "../components/History";
 import { TopBar } from "../components/TopBar";
 import * as ImagePicker from "expo-image-picker";
+import axios from "axios";
+import { publicRoute } from "../../url/route";
+import { LoginContext } from "../../context/isLogin";
+import * as SecureStore from "expo-secure-store";
 
 const Tab = createMaterialTopTabNavigator();
 
-export const Profile = () => {
+export const Profile = ({ route }) => {
+  const { userId } = useContext(LoginContext);
+  let userIdParams = undefined;
+  if (route.params) {
+    userIdParams = route.params.UserId;
+  }
+
+  const [cafeId, setCafeId] = useState();
   const [profilePhoto, setProfilePhoto] = useState(
     "https://via.placeholder.com/150"
   );
-  const [name, setName] = useState("John Doe");
-  const [desc, setDesc] = useState(
-    "Coffee enthusiast, traveler, photographer."
-  );
-  const [address, setAddress] = useState("123 Coffee Street, Java Island");
+  const [name, setName] = useState("Loading ...");
+  const [desc, setDesc] = useState("");
+  const [address, setAddress] = useState("");
+  const [nameEdit, setNameEdit] = useState("Loading ...");
+  const [descEdit, setDescEdit] = useState("");
+  const [addressEdit, setAddressEdit] = useState("");
   const [editing, setEditing] = useState(false);
+  const [galleryPhoto, setGalleryPhoto] = useState([
+    "https://via.placeholder.com/150",
+  ]);
+  const [eventhistory, setEventHistory] = useState([]);
 
-  const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
+  useEffect(() => {
+    fetchingCafe();
+  }, []);
 
-    if (!result.cancelled) {
-      setProfilePhoto(result.uri);
+  const fetchingCafe = async () => {
+    try {
+      let id = userIdParams || userId;
+      const token = await SecureStore.getItemAsync("auth");
+
+      let userData = await axios({
+        method: "get",
+        url: publicRoute + `/user/${id}`,
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      });
+      let history = userData.data.Rooms.map((el) => el.Occasion);
+      setEventHistory(history);
+
+      let cafeId = userData.data.Rooms[0].Occasion.CafeId;
+      setCafeId(cafeId);
+      let cafeData = await axios({
+        method: "get",
+        url: publicRoute + `/cafe/${cafeId}`,
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      });
+      let photos = cafeData.data.Galleries.map((el) => el.imgUrl);
+      setGalleryPhoto(photos);
+      setName(cafeData.data.name);
+      setAddress(cafeData.data.address);
+      setDesc(cafeData.data.description);
+      setNameEdit(cafeData.data.name);
+      setAddressEdit(cafeData.data.address);
+      setDescEdit(cafeData.data.description);
+      setProfilePhoto(cafeData.data.photo);
+    } catch (error) {
+      console.log(error);
     }
   };
+  const pickImage = async () => {
+    if (userIdParams === undefined || userIdParams == userId) {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
 
+      if (!result.canceled) {
+        let localUri = result.assets[0].uri;
+        let filename = localUri.split("/").pop();
+
+        // Infer the type of the image
+        let match = /\.(\w+)$/.exec(filename);
+        let type = match ? `image/${match[1]}` : `image`;
+        const formData = new FormData();
+        formData.append("photo", { uri: localUri, name: filename, type });
+        const token = await SecureStore.getItemAsync("auth");
+        await axios({
+          method: "patch",
+          url: publicRoute + `/cafe/change-photo/${cafeId}`,
+          data: formData,
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setProfilePhoto(result.assets[0].uri);
+      }
+    }
+  };
+  const handleEditProfile = async () => {
+    if (editing) {
+      const token = await SecureStore.getItemAsync("auth");
+      if (name !== nameEdit) {
+        await axios({
+          method: "patch",
+          url: publicRoute + `/cafe/name/${cafeId}`,
+          data: { name: nameEdit },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setName(nameEdit);
+      }
+      if (desc !== descEdit) {
+        await axios({
+          method: "patch",
+          url: publicRoute + `/cafe/description/${cafeId}`,
+          data: { description: descEdit },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setDesc(descEdit);
+      }
+      if (address !== addressEdit) {
+        await axios({
+          method: "patch",
+          url: publicRoute + `/cafe/address/${cafeId}`,
+          data: { address: addressEdit },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setAddress(addressEdit);
+      }
+    }
+    setEditing(!editing);
+  };
   return (
     <SafeAreaView style={styles.safeArea}>
       <TopBar />
@@ -49,40 +164,52 @@ export const Profile = () => {
           <Image source={{ uri: profilePhoto }} style={styles.profilePhoto} />
         </TouchableOpacity>
         {editing ? (
-          <TextInput style={styles.input} value={name} onChangeText={setName} />
+          <TextInput
+            style={styles.input}
+            value={nameEdit}
+            onChangeText={setNameEdit}
+          />
         ) : (
           <Text style={styles.name}>{name}</Text>
         )}
         {editing ? (
-          <TextInput style={styles.input} value={desc} onChangeText={setDesc} />
+          <TextInput
+            style={styles.input}
+            value={descEdit}
+            onChangeText={setDescEdit}
+          />
         ) : (
           <Text style={styles.desc}>{desc}</Text>
         )}
         {editing ? (
           <TextInput
             style={styles.input}
-            value={address}
-            onChangeText={setAddress}
+            value={addressEdit}
+            onChangeText={setAddressEdit}
           />
         ) : (
           <Text style={styles.address}>{address}</Text>
         )}
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => setEditing(!editing)}
-        >
-          <Text style={styles.buttonText}>
-            {editing ? "Save Changes" : "Edit Profile"}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.buttonMap}>
-          <Text style={styles.buttonText}>Show on Map</Text>
-        </TouchableOpacity>
+        {userIdParams === undefined || userIdParams == userId ? (
+          <TouchableOpacity style={styles.button} onPress={handleEditProfile}>
+            <Text style={styles.buttonText}>
+              {editing ? "Save Changes" : "Edit Profile"}
+            </Text>
+          </TouchableOpacity>
+        ) : (
+          ""
+        )}
       </View>
 
       <Tab.Navigator>
-        <Tab.Screen name="Gallery" component={Gallery} />
-        <Tab.Screen name="History" component={History} />
+        <Tab.Screen
+          name="Gallery"
+          children={() => <Gallery galleryPhoto={galleryPhoto} />}
+        />
+        <Tab.Screen
+          name="History"
+          children={() => <History eventhistory={eventhistory} />}
+        />
       </Tab.Navigator>
     </SafeAreaView>
   );

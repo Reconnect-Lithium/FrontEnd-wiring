@@ -1,45 +1,172 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   View,
   Text,
   Image,
   TouchableOpacity,
   StyleSheet,
-  ScrollView,
+  TextInput,
   SafeAreaView,
+  Alert,
 } from "react-native";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { History } from "../components/History";
 import { TopBar } from "../components/TopBar";
-import Ionicons from "react-native-vector-icons/Ionicons";
-
-
+import * as ImagePicker from "expo-image-picker";
+import axios from "axios";
+import { publicRoute } from "../../url/route";
+import { LoginContext } from "../../context/isLogin";
+import * as SecureStore from "expo-secure-store";
+import { useFocusEffect } from "@react-navigation/native";
 
 const Tab = createMaterialTopTabNavigator();
 
-// for user ---> uncomment code bellow and comment for owner
+export const ProfileUser = ({ route }) => {
+  const { userId } = useContext(LoginContext);
+  let userIdParams = undefined;
+  if (route.params) {
+    userIdParams = route.params.UserId;
+  }
 
+  const [profilePhoto, setProfilePhoto] = useState(
+    "https://via.placeholder.com/150"
+  );
+  const [name, setName] = useState("Loading ...");
+  const [desc, setDesc] = useState("");
+  const [nameEdit, setNameEdit] = useState("Loading ...");
+  const [descEdit, setDescEdit] = useState("");
+  const [editing, setEditing] = useState(false);
+  const [eventhistory, setEventHistory] = useState([]);
 
-// for owner uncomment code below and comment code for user
-export const ProfileUser = () => {
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchingUser();
+    }, [])
+  );
+
+  const fetchingUser = async () => {
+    try {
+      let id = userIdParams || userId;
+      const token = await SecureStore.getItemAsync("auth");
+
+      let userData = await axios({
+        method: "get",
+        url: publicRoute + `/user/${id}`,
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      });
+      let history = userData.data.Rooms.map((el) => el.Occasion);
+      setEventHistory(history);
+      setName(userData.data.username);
+      setDesc(userData.data.bio);
+      setNameEdit(userData.data.username);
+      setDescEdit(userData.data.bio);
+      setProfilePhoto(userData.data.avatar);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const pickImage = async () => {
+    if (userIdParams === undefined || userIdParams == userId) {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
+
+      if (!result.canceled) {
+        let localUri = result.assets[0].uri;
+        let filename = localUri.split("/").pop();
+
+        // Infer the type of the image
+        let match = /\.(\w+)$/.exec(filename);
+        let type = match ? `image/${match[1]}` : `image`;
+        const formData = new FormData();
+        formData.append("photo", { uri: localUri, name: filename, type });
+        const token = await SecureStore.getItemAsync("auth");
+        await axios({
+          method: "patch",
+          url: publicRoute + `/user/avatar/${userId}`,
+          data: { avatar: result.assets[0].uri },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setProfilePhoto(result.assets[0].uri);
+      }
+    }
+  };
+  const handleEditProfile = async () => {
+    if (editing) {
+      const token = await SecureStore.getItemAsync("auth");
+      if (name !== nameEdit) {
+        await axios({
+          method: "patch",
+          url: publicRoute + `/user/username/${userId}`,
+          data: { username: nameEdit },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setName(nameEdit);
+      }
+      if (desc !== descEdit) {
+        await axios({
+          method: "patch",
+          url: publicRoute + `/user/bio/${userId}`,
+          data: { bio: descEdit },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setDesc(descEdit);
+      }
+    }
+    setEditing(!editing);
+  };
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Konten header profil */}
       <TopBar />
       <View style={styles.headerContainer}>
-        <Image
-          source={{ uri: "https://via.placeholder.com/150" }}
-          style={styles.profilePhoto}
-        />
-        <Text style={styles.name}>John Doe</Text>
-        <Text style={styles.desc}>
-          Coffee enthusiast, traveler, photographer.
-        </Text>
+        <TouchableOpacity onPress={pickImage}>
+          <Image source={{ uri: profilePhoto }} style={styles.profilePhoto} />
+        </TouchableOpacity>
+        {editing ? (
+          <TextInput
+            style={styles.input}
+            value={nameEdit}
+            onChangeText={setNameEdit}
+          />
+        ) : (
+          <Text style={styles.name}>{name}</Text>
+        )}
+        {editing ? (
+          <TextInput
+            style={styles.input}
+            value={descEdit}
+            onChangeText={setDescEdit}
+          />
+        ) : (
+          <Text style={styles.desc}>{desc}</Text>
+        )}
+        {userIdParams === undefined || userIdParams == userId ? (
+          <TouchableOpacity style={styles.button} onPress={handleEditProfile}>
+            <Text style={styles.buttonText}>
+              {editing ? "Save Changes" : "Edit Profile"}
+            </Text>
+          </TouchableOpacity>
+        ) : (
+          ""
+        )}
       </View>
 
-      {/* Tab Navigator */}
       <Tab.Navigator>
-        <Tab.Screen name="History" component={History} />
+        <Tab.Screen
+          name="History"
+          children={() => <History eventhistory={eventhistory} />}
+        />
       </Tab.Navigator>
     </SafeAreaView>
   );
@@ -54,10 +181,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 20,
   },
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
   profilePhoto: {
     width: 120,
     height: 120,
@@ -65,10 +188,8 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     marginTop: 20,
     marginBottom: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    borderWidth: 3,
+    borderColor: "#ddd",
   },
   name: {
     fontSize: 22,
@@ -81,35 +202,33 @@ const styles = StyleSheet.create({
     color: "#333",
     marginBottom: 10,
   },
-  address: {
-    fontSize: 16,
-    textAlign: "center",
-    color: "#333",
-    marginBottom: 20,
-  },
-  mapButton: {
-    backgroundColor: "#5E17EB",
-    padding: 10,
-    borderRadius: 20,
+  button: {
+    backgroundColor: "grey",
+    padding: 12,
+    borderRadius: 25,
     alignItems: "center",
-    marginHorizontal: 100,
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.8,
-    shadowRadius: 2,
+    marginHorizontal: 50,
+    marginBottom: 10,
   },
-  mapButtonText: {
+  buttonMap: {
+    backgroundColor: "#5E17EB",
+    padding: 12,
+    borderRadius: 25,
+    alignItems: "center",
+    marginHorizontal: 50,
+    marginBottom: 10,
+  },
+  buttonText: {
     color: "#fff",
     fontSize: 16,
   },
-  tabContainer: {
-    flex: 1,
-  },
-  tabContent: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
+  input: {
+    width: "80%",
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 10,
+    marginBottom: 10,
+    backgroundColor: "#f9f9f9",
   },
 });

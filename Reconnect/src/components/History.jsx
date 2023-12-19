@@ -1,5 +1,12 @@
-import React from "react";
-import { View, Text, FlatList, StyleSheet, Dimensions, Image } from "react-native";
+import React, { Fragment } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  Dimensions,
+  Image,
+} from "react-native";
 
 const historyData = [
   { id: "1", title: "Coffee Workshop", date: "2021-01-01" },
@@ -7,25 +14,32 @@ const historyData = [
   { id: "3", title: "Barista Meetup", date: "2021-03-20" },
 ];
 
-export const History = () => {
+export const History = ({ eventhistory }) => {
   const screenWidth = Dimensions.get("window").width;
 
   return (
-    <FlatList
-      style={{ backgroundColor: "#fff" }}
-      data={historyData}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item }) => (
-        <View style={styles.item}>
-          <Image
-            source={{ uri: item.imageUrl }}
-            style={[styles.image, { width: screenWidth - 32 }]}
-          />
-          <Text style={styles.title}>{item.title}</Text>
-          <Text style={styles.date}>{item.date}</Text>
-        </View>
+    <Fragment>
+      {eventhistory.length === 0 ? (
+        <Text> No History Data</Text>
+      ) : (
+        <FlatList
+          style={{ backgroundColor: "#fff" }}
+          data={eventhistory}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View style={styles.item}>
+              <Image
+                source={{ uri: item.photo }}
+                style={[styles.image, { width: screenWidth - 32 }]}
+              />
+              <Text style={styles.title}>{item.eventName}</Text>
+              <Text style={styles.date}>{`Start :${item.startTime}`}</Text>
+              <Text style={styles.date}>{`End   :${item.endTime}`}</Text>
+            </View>
+          )}
+        />
       )}
-    />
+    </Fragment>
   );
 };
 
