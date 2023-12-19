@@ -14,6 +14,7 @@ import { useContext } from "react";
 import { LoginContext } from "../../context/isLogin";
 
 export const TopBar = () => {
+  const { setRole, setUserId, setIsLogin } = useContext(LoginContext);
   const { LogoutActions } = useContext(LoginContext);
   const handleLogout = () => {
     Alert.alert("Logout Confirmation", "Are you sure you want to Logout?", [
@@ -22,7 +23,17 @@ export const TopBar = () => {
         onPress: () => console.log("Cancel Logout"),
         style: "cancel",
       },
-      { text: "Yes", onPress: () => LogoutActions("auth") },
+      {
+        text: "Yes",
+        onPress: async () => {
+          await LogoutActions("auth");
+          await LogoutActions("userId");
+          await LogoutActions("userRole");
+          setIsLogin(false);
+          setRole("user");
+          setUserId(null);
+        },
+      },
     ]);
   };
 

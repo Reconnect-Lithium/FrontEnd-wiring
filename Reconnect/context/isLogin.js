@@ -9,19 +9,28 @@ async function getValueFor(key) {
 
 export const LoginProvider = ({ children }) => {
   const [isLogin, setIsLogin] = useState(false);
-  async function loginAction(key, value) {
+  const [role, setRole] = useState("user");
+  const [userId, setUserId] = useState(null);
+  async function loginAction(data) {
     try {
-      await SecureStore.setItemAsync(key, value);
+      await SecureStore.setItemAsync("auth", data.access_token);
+      await SecureStore.setItemAsync("userRole", data.role);
+      await SecureStore.setItemAsync("userId", `${data.id}`);
+
       setIsLogin(true);
+      setRole(data.role);
+      setUserId(`${data.id}`);
     } catch (error) {
       console.log(error);
     }
   }
 
-  async function LogoutActions(key, value) {
+  async function LogoutActions(key) {
     try {
       await SecureStore.deleteItemAsync(key);
       setIsLogin(false);
+      setRole("user");
+      setUserId(null);
     } catch (error) {
       console.log(error);
     }
@@ -43,7 +52,16 @@ export const LoginProvider = ({ children }) => {
 
   return (
     <LoginContext.Provider
-      value={{ isLogin, setIsLogin, loginAction, LogoutActions }}
+      value={{
+        role,
+        setRole,
+        userId,
+        setUserId,
+        isLogin,
+        setIsLogin,
+        loginAction,
+        LogoutActions,
+      }}
     >
       {children}
     </LoginContext.Provider>

@@ -6,23 +6,35 @@ import { RegisterUser } from "./RegisterUser";
 import { TabBottom } from "../components/TabBottom";
 import { Detail } from "./Detail";
 import { RoomChat } from "./RoomChat";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { LoginContext } from "../../context/isLogin";
+import * as SecureStore from "expo-secure-store";
+import { TabBottomUser } from "../components/TabBottomUser";
 
 const Stack = createNativeStackNavigator();
 
 export const MainStack = ({ navigation, route }) => {
   const { isLogin } = useContext(LoginContext);
-
+  const { role } = useContext(LoginContext);
+  console.log(role, "?????>>");
   return (
     <Stack.Navigator>
       {isLogin ? (
         <>
-          <Stack.Screen
-            name="Success"
-            options={{ headerShown: false }}
-            component={TabBottom}
-          />
+          {role === "user" ? (
+            <Stack.Screen
+              name="SuccessUser"
+              options={{ headerShown: false }}
+              component={TabBottomUser}
+            />
+          ) : (
+            <Stack.Screen
+              name="Success"
+              options={{ headerShown: false }}
+              component={TabBottom}
+            />
+          )}
+
           <Stack.Screen
             name="Detail"
             component={Detail}

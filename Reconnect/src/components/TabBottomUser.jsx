@@ -1,23 +1,23 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { HomePage } from "../screens/HomePage";
-import { Profile } from "../screens/Profile";
-import { CreateEvent } from "../screens/CreateEvent";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import { ProfileUser } from "../screens/ProfileUser";
+import UserMap from "../screens/UserMap";
+import { HomePage } from "../screens/HomePage";
 
 const Tab = createBottomTabNavigator();
 
-export const TabBottom = ({ navigation, route }) => {
+export const TabBottomUser = ({ navigation, route }) => {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
 
-          if (route.name === "Home") {
+          if (route.name === "HomePage") {
             iconName = focused ? "home" : "home-outline";
-          } else if (route.name === "Create") {
-            iconName = focused ? "add-circle" : "add-circle-outline";
+          } else if (route.name === "Map") {
+            iconName = focused ? "map" : "map-outline";
           } else if (route.name === "Profile") {
             iconName = focused ? "person" : "person-outline";
           }
@@ -39,21 +39,19 @@ export const TabBottom = ({ navigation, route }) => {
       })}
     >
       <Tab.Screen
-        name="Home"
+        name="HomePage"
         options={{ headerShown: false }}
         component={HomePage}
       />
-
       <Tab.Screen
-        name="Create"
+        name="Map"
         options={{ headerShown: false }}
-        component={CreateEvent}
+        component={UserMap}
       />
-
       <Tab.Screen
         name="Profile"
         options={{ headerShown: false }}
-        component={Profile}
+        component={ProfileUser}
       />
     </Tab.Navigator>
   );

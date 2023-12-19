@@ -15,7 +15,8 @@ import { useContext } from "react";
 import { LoginContext } from "../../context/isLogin";
 
 export const Login = ({ navigation, route }) => {
-  const { setIsLogin } = useContext(LoginContext);
+  const { setRole, setUserId, setIsLogin } = useContext(LoginContext);
+  const { loginAction } = useContext(LoginContext);
 
   const [eyes, setEyes] = useState(false);
   const [form, setForm] = useState({
@@ -36,11 +37,11 @@ export const Login = ({ navigation, route }) => {
         url: publicRoute + "/login",
         data: form,
       }); // productions
-      // console.log(data);
-      await SecureStore.setItemAsync("auth", data.access_token);
-      await SecureStore.setItemAsync("userId", `data.id`);
-      await SecureStore.setItemAsync("userRole", data.role);
+      // console.log(data, "?????");
+      await loginAction(data);
       setIsLogin(true);
+      setRole(data.role);
+      setUserId(`${data.id}`);
     } catch (error) {
       console.log(error, ">>>>>>>>");
     }
