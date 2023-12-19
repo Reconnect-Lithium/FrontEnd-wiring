@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
   touchableDirection: {
     borderRadius: 5,
     padding: 5,
-    backgroundColor: "#2196F3",
+    backgroundColor: "#5E17EB",
   },
   touchableDetail: {
     marginLeft: 5,
