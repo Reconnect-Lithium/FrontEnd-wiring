@@ -1,35 +1,66 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   TextInput,
-  KeyboardAvoidingView,
-  Platform,
   Animated,
   Image,
+  SafeAreaView,
+  FlatList,
 } from "react-native";
+import moment from "moment";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import io from "socket.io-client";
+import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import { publicRoute } from "../../url/route";
-import axios from "axios";
-// socket
-import io from "socket.io-client";
+
 const socket = io(publicRoute);
 
-export const RoomChat = ({ route }) => {
+export const RoomChat = ({ route, navigation }) => {
   const { roomId } = route.params;
-  // console.log(roomId < "?>?>?");
   const [messages, setMessages] = useState([]);
-  const [form, setForm] = useState("");
+  const [text, setText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const typingAnimation = new Animated.Value(0);
+  const [participantsTyping, setParticipantsTyping] = useState([]);
+  const [participants, setParticipants] = useState(["User Name"]);
+  const insets = useSafeAreaInsets();
+  const scrollViewRef = useRef();
+  const typingAnimation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    let timeout;
-    if (isTyping) {
+    fetching(roomId);
+    socket.emit("CLIENT_ROOMS", roomId);
+  }, [roomId]);
+
+  useEffect(() => {
+    socket.on("SERVER_SEND_RESPONSE", (data) => {
+      setMessages((prevMessages) => [...prevMessages, data]);
+    });
+  }, [socket]);
+
+  const fetching = async (roomId) => {
+    try {
+      const token = await SecureStore.getItemAsync("auth");
+      const { data } = await axios({
+        method: "get",
+        url: publicRoute + "/room/list-message/" + roomId,
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      });
+      setMessages(data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    if (participantsTyping.length > 0) {
+      setIsTyping(true);
       Animated.loop(
         Animated.sequence([
           Animated.timing(typingAnimation, {
@@ -45,94 +76,59 @@ export const RoomChat = ({ route }) => {
         ])
       ).start();
     } else {
+      setIsTyping(false);
       typingAnimation.setValue(0);
-      Animated.loop(Animated.timing(typingAnimation)).stop();
     }
+  }, [participantsTyping, typingAnimation]);
 
-    return () => clearTimeout(timeout);
-  }, [isTyping, typingAnimation]);
-
-  // socket - fetching
-  useEffect(() => {
-    fetching(roomId);
-    socket.emit("CLIENT_ROOMS", roomId);
-  }, [roomId]);
-
-  useEffect(() => {
-    socket.on("SERVER_SEND_RESPONSE", (data) => {
-      console.log(data, "?????????");
-
-      setMessages((last) => {
-        return [data, ...last];
-      });
-    });
-  }, [socket]);
-
-  const fetching = async (roomId) => {
-    try {
-      const token = await SecureStore.getItemAsync("auth");
-      //   console.log(token);
-
-      const { data } = await axios({
-        method: "get",
-        url: publicRoute + "/room/list-message/" + roomId,
-        headers: {
-          Authorization: "Bearer " + token,
-        },
-      });
-      //   console.log(data);
-      setMessages(data);
-    } catch (error) {
-      console.log(error);
-    }
+  const getMessageTextColor = (sender) => {
+    return sender === "me" ? "#fff" : "#333";
   };
 
-  const handleMsg = (value) => {
-    setForm(value);
-  };
-
-  const handleSubmit = async () => {
-    // console.log(form);
-    try {
-      const token = await SecureStore.getItemAsync("auth");
-      // console.log(roomId);
-      const { data } = await axios({
-        method: "post",
-        url: publicRoute + "/room/create-message/" + roomId,
-        headers: {
-          Authorization: "Bearer " + token,
-        },
-        data: {
-          message: form,
-        },
-      }); // productions
-      // console.log(data);k
+  const handleSend = () => {
+    if (text.trim()) {
       const send = {
-        newMessage: data,
+        newMessage: { id: Date.now(), text, sender: "me", time: new Date() },
         roomId,
       };
 
-      socket.emit("CLIENT_SEND_MSG", send); // socket
-      setMessages((last) => {
-        return [send.newMessage, ...last];
-      });
-    } catch (error) {
-      console.log(error, ">>>>>>>>");
+      socket.emit("CLIENT_SEND_MSG", send);
+
+      setMessages((prevMessages) => [...prevMessages, send.newMessage]);
+      setText("");
+      scrollViewRef.current.scrollToEnd({ animated: true });
     }
   };
 
+  const startTyping = () => {
+    if (!participantsTyping.includes("me")) {
+      setParticipantsTyping([...participantsTyping, "me"]);
+    }
+  };
+
+  const stopTyping = () => {
+    if (participantsTyping.includes("me")) {
+      setParticipantsTyping(
+        participantsTyping.filter((participant) => participant !== "me")
+      );
+    }
+  };
+
+  const receiveMessage = (newMessage) => {
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
+    stopTyping();
+  };
+
+  const timeAgo = (time) => moment(time).fromNow();
+
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={styles.container}
-      keyboardVerticalOffset={80}
-    >
+    <SafeAreaView style={[styles.safeArea, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="chevron-back" size={30} color="#007aff" />
+          <Ionicons name="chevron-back" size={30} color="#5E17EB" />
         </TouchableOpacity>
         <Image
           style={styles.profileIcon}
@@ -140,60 +136,81 @@ export const RoomChat = ({ route }) => {
         />
         <Text style={styles.userName}>User Name</Text>
       </View>
-      <ScrollView style={styles.messagesContainer}>
-        {messages.map((message) => (
-          <View key={message.id} style={styles.messageBubble}>
-            <Text style={styles.messageText}>{message.message}</Text>
-          </View>
-        ))}
-      </ScrollView>
-      <View style={styles.typingIndicatorContainer}>
+      <FlatList
+        style={styles.messagesContainer}
+        data={messages}
+        keyExtractor={(item) => item.id.toString()}
+        ref={scrollViewRef}
+        onContentSizeChange={() =>
+          scrollViewRef.current.scrollToEnd({ animated: true })
+        }
+        renderItem={({ item }) => (
+          <Animated.View
+            style={[
+              styles.messageBubble,
+              item.sender === "me" ? styles.myMessage : styles.otherMessage,
+            ]}
+          >
+            <View style={styles.messageInfo}>
+              <Image
+                style={styles.profileIconSmall}
+                source={{ uri: "https://via.placeholder.com/30" }}
+              />
+              <Text style={styles.senderName}>{item.sender}</Text>
+            </View>
+            <Text
+              style={[
+                styles.messageText,
+                { color: getMessageTextColor(item.sender) },
+              ]}
+            >
+              {item.text}
+            </Text>
+            <Text style={styles.timeText}>{timeAgo(item.time)}</Text>
+          </Animated.View>
+        )}
+      />
+      {isTyping && (
         <Animated.View
-          style={[styles.typingIndicator, { opacity: typingAnimation }]}
+          style={{ ...styles.typingIndicator, opacity: typingAnimation }}
         >
-          <Text>Someone is typing...</Text>
+          <Text style={styles.typingText}>Someone is typing...</Text>
         </Animated.View>
-      </View>
+      )}
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
-          onChangeText={(value) => {
-            handleMsg(value);
-          }}
-          onFocus={() => setIsTyping(true)}
-          onBlur={() => setIsTyping(false)}
+          value={text}
+          onChangeText={setText}
+          onFocus={startTyping}
+          onBlur={stopTyping}
           placeholder="Type a message..."
         />
-        <TouchableOpacity // action login
-          onPress={async () => {
-            handleSubmit();
-          }}
-        >
-          <Ionicons name="send" size={24} color="blue" />
+        <TouchableOpacity onPress={handleSend}>
+          <Ionicons name="send" size={24} color="#5E17EB" />
         </TouchableOpacity>
       </View>
-    </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
+// Styles
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    paddingTop: 20,
+    backgroundColor: "#f7f7f7",
+  },
   container: {
     flex: 1,
-    backgroundColor: "white",
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: Platform.OS === "ios" ? 50 : 10, // Adjust status bar height
+    paddingTop: Platform.OS === "ios" ? 50 : 10,
     paddingBottom: 10,
-    backgroundColor: "#f7f7f7",
     borderBottomWidth: 1,
     borderBottomColor: "#ececec",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 5,
   },
   backButton: {
     marginLeft: 10,
@@ -204,6 +221,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginHorizontal: 10,
   },
+  profileIconSmall: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    marginRight: 10,
+  },
   userName: {
     fontSize: 18,
     fontWeight: "bold",
@@ -211,7 +234,6 @@ const styles = StyleSheet.create({
   },
   messagesContainer: {
     flex: 1,
-    padding: 10,
   },
   messageBubble: {
     backgroundColor: "#e5e5ea",
@@ -220,14 +242,45 @@ const styles = StyleSheet.create({
     marginVertical: 4,
     maxWidth: "70%",
     alignSelf: "flex-end",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1,
-    elevation: 2,
+    elevation: 1,
+  },
+  myMessage: {
+    alignSelf: "flex-end",
+    backgroundColor: "#5E17EB",
+    marginRight: 10,
+  },
+  otherMessage: {
+    alignSelf: "flex-start",
+    backgroundColor: "#e5e5ea",
+    marginLeft: 10,
+  },
+  messageInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  senderName: {
+    fontSize: 14,
+    fontWeight: "bold",
+    marginRight: 5,
+    color: "#afafaf",
   },
   messageText: {
     fontSize: 16,
+  },
+  timeText: {
+    fontSize: 12,
+    color: "#999",
+    marginTop: 4,
+  },
+  typingIndicator: {
+    marginTop: 4,
+    marginBottom: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  typingText: {
+    color: "gray",
+    fontStyle: "italic",
   },
   inputContainer: {
     flexDirection: "row",
@@ -241,14 +294,5 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 20,
     padding: 10,
-  },
-  typingIndicatorContainer: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    justifyContent: "flex-start",
-    alignItems: "center",
-  },
-  typingIndicator: {
-    height: 20,
   },
 });
