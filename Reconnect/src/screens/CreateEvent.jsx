@@ -10,144 +10,294 @@ import {
   ScrollView,
 } from "react-native";
 import { TopBar } from "../components/TopBar";
+import * as ImagePicker from "expo-image-picker";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { Button } from "react-native-paper";
+import * as SecureStore from "expo-secure-store";
+import { publicRoute } from "../../url/route";
+import axios from "axios";
 
 export const CreateEvent = () => {
-  const bodyFormData = new FormData();
+  const [startMode, setStartMode] = useState("date");
+  const [endMode, setEndMode] = useState("date");
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [eventName, setEventName] = useState("");
   const [description, setDescription] = useState("");
-
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
+  const [selectedImage, setSelectedImage] = useState(
+    "https://via.placeholder.com/150"
+  );
+  const [startTime, setStartTime] = useState(new Date());
+  const [imageData, setImageData] = useState({ uri: "", name: "", type: "" });
+  const [endTime, setEndTime] = useState(new Date());
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("");
-  const categories = ["Category 1", "Category 2", "Category 3", "Category 4"];
+  const categories = [
+    "Music",
+    "Stand Up Comedy",
+    "Performance",
+    "Competitions",
+  ];
 
   const handleSelectCategory = (category) => {
     setSelectedCategory(category);
     setCategoryModalVisible(false);
   };
   const closeModal = () => setCategoryModalVisible(false);
-  const validateTime = (time) => {
-    const regex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
-    return regex.test(time);
+
+  const showStartDatepicker = () => {
+    setStartMode("date");
+    setShowStartDatePicker(true);
   };
-  const handleTimeChange = (text, setTime) => {
-    const newTime = text.replace(/[^0-9]/g, "");
-    if (newTime.length >= 2) {
-      setTime(`${newTime.slice(0, 2)}:${newTime.slice(2, 4)}`);
-    } else {
-      setTime(newTime);
-    }
+
+  const showStartTimepicker = () => {
+    setStartMode("time");
+    setShowStartDatePicker(true);
   };
-  const submitTime = (time, setTime) => {
-    if (validateTime(time)) {
-      setTime(time);
-    } else {
-      alert("Invalid time format. Please use HH:mm format.");
+
+  const showEndDatepicker = () => {
+    setEndMode("date");
+    setShowEndDatePicker(true);
+  };
+
+  const showEndTimepicker = () => {
+    setEndMode("time");
+    setShowEndDatePicker(true);
+  };
+
+  const handleChangeStartDate = (event, selectedDate) => {
+    const currentDate = selectedDate || startTime;
+    setShowStartDatePicker(false);
+    setStartTime(currentDate);
+  };
+
+  const handleChangeEndDate = (event, selectedDate) => {
+    const currentDate = selectedDate || endTime;
+    setShowEndDatePicker(false);
+    setEndTime(currentDate);
+  };
+
+
+  const handleImageSelection = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      let localUri = result.assets[0].uri;
+      let filename = localUri.split("/").pop();
+      let match = /\.(\w+)$/.exec(filename);
+      let type = match ? `image/${match[1]}` : `image`;
+      setSelectedImage(localUri);
+      setImageData({ uri: localUri, name: filename, type });
     }
   };
 
-  console.log(description);
+  const handleFormSubmit = async () => {
+    // console.log("Form submitted!");
+    // console.log("Start Time: ", startTime);
+    // console.log("End Time: ", endTime);
+    // console.log("Description: ", description);
+    // console.log("Selected Category: ", selectedCategory);
+    // console.log("Selected Image: ", selectedImage);
+    try {
+      const token = await SecureStore.getItemAsync("auth");
+      const formData = new FormData();
+      formData.append("startTime", startTime.toISOString());
+      formData.append("endTime", endTime.toISOString());
+      formData.append("description", description);
+      formData.append("eventName", eventName);
+      formData.append("CategoryId", selectedCategory);
+      formData.append("photo", imageData);
+
+      const response = await axios({
+        method: "post",
+        url: publicRoute + `/occasion`,
+        data: formData,
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        console.log("Form submitted successfully");
+      } else {
+        console.log(
+          "Form submission failed. Server returned: ",
+          response.status
+        );
+      }
+    } catch (error) {
+      console.log("An error occured while submitting the form: ", error.response.data);
+    }
+  };
 
   return (
     <View style={styles.container}>
       <TopBar />
-      <View style={styles.containerInner}>
-        <Text style={styles.title}>Create Event</Text>
+      <ScrollView>
+        <View style={styles.containerInner}>
+          <Text style={styles.title}>Create Event</Text>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Start Time (HH:mm)</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter Start Time"
-            value={startTime}
-            onChangeText={(text) => handleTimeChange(text, setStartTime)}
-            onEndEditing={() => submitTime(startTime, setStartTime)}
-            keyboardType="numeric"
-            maxLength={5}
-          />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>End Time (HH:mm)</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter End Time"
-            value={endTime}
-            onChangeText={(text) => handleTimeChange(text, setEndTime)}
-            onEndEditing={() => submitTime(endTime, setEndTime)}
-            keyboardType="numeric"
-            maxLength={5}
-          />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Description</Text>
-          <TextInput
-            style={styles.input}
-            onChangeText={(value) => {
-              setDescription(value);
-            }}
-            placeholder="Enter Description"
-            multiline
-          />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Category</Text>
-          <TouchableOpacity
-            style={styles.input}
-            onPress={() => setCategoryModalVisible(true)}
-          >
-            <Text>{selectedCategory || "Select Category"}</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Modal */}
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={categoryModalVisible}
-          onRequestClose={closeModal}
-        >
-          {/* Modal background */}
-          <TouchableOpacity
-            style={styles.modalOverlay}
-            activeOpacity={1}
-            onPress={closeModal} // Close the modal when the background is pressed
-          >
-            {/* Prevent modal close when the modal view is pressed */}
-            <View
-              style={styles.modalContainer}
-              onStartShouldSetResponder={() => true}
-            >
-              <ScrollView>
-                {categories.map((category, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={styles.modalItem}
-                    onPress={() => handleSelectCategory(category)}
-                  >
-                    <Text style={styles.modalText}>{category}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Start Time</Text>
+            <View style={styles.pickerContainer}>
+              <Button
+                icon="calendar"
+                textColor="#5E17EB"
+                buttonColor="white"
+                style={styles.pickerButton}
+                onPress={showStartDatepicker}
+              >
+                Pick Event Start Date
+              </Button>
+              <Button
+                icon="clock"
+                textColor="#5E17EB"
+                buttonColor="white"
+                style={styles.pickerButton}
+                onPress={showStartTimepicker}
+              >
+                Pick Event Start Time
+              </Button>
+              <Text>Selected: {startTime.toLocaleString()}</Text>
             </View>
+
+            {showStartDatePicker && (
+              <DateTimePicker
+                testID="dateTimePicker"
+                value={startTime}
+                mode={startMode}
+                is24Hour={true}
+                onChange={handleChangeStartDate}
+              />
+            )}
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>End Time</Text>
+            <View style={styles.pickerContainer}>
+              <Button
+                icon="calendar"
+                textColor="#5E17EB"
+                buttonColor="white"
+                style={styles.pickerButton}
+                onPress={showEndDatepicker}
+              >
+                Pick Event End Date!
+              </Button>
+              <Button
+                icon="clock"
+                textColor="#5E17EB"
+                buttonColor="white"
+                style={styles.pickerButton}
+                onPress={showEndTimepicker}
+              >
+                Pick Event End Time!
+              </Button>
+              <Text>Selected: {endTime.toLocaleString()}</Text>
+              {}
+            </View>
+
+            {showEndDatePicker && (
+              <DateTimePicker
+                testID="dateTimePicker"
+                value={endTime}
+                mode={endMode}
+                is24Hour={true}
+                onChange={handleChangeEndDate}
+              />
+            )}
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Event Name</Text>
+            <TextInput
+              style={styles.input}
+              onChangeText={(value) => {
+                setEventName(value);
+              }}
+              placeholder="Enter Event Name"
+              multiline
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Description</Text>
+            <TextInput
+              style={styles.input}
+              onChangeText={(value) => {
+                setDescription(value);
+              }}
+              placeholder="Enter Description"
+              multiline
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Category</Text>
+            <TouchableOpacity
+              style={styles.input}
+              onPress={() => setCategoryModalVisible(true)}
+            >
+              <Text>{selectedCategory || "Select Category"}</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Modal */}
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={categoryModalVisible}
+            onRequestClose={closeModal}
+          >
+            {/* Modal background */}
+            <TouchableOpacity
+              style={styles.modalOverlay}
+              activeOpacity={1}
+              onPress={closeModal} // Close the modal when the background is pressed
+            >
+              {/* Prevent modal close when the modal view is pressed */}
+              <View
+                style={styles.modalContainer}
+                onStartShouldSetResponder={() => true}
+              >
+                <ScrollView>
+                  {categories.map((category, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={styles.modalItem}
+                      onPress={() => handleSelectCategory(index + 1)}
+                    >
+                      <Text style={styles.modalText}>{category}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            </TouchableOpacity>
+          </Modal>
+
+          <Image style={styles.imagePreview} source={{ uri: selectedImage }} />
+
+          <TouchableOpacity
+            style={styles.imagePicker}
+            onPress={handleImageSelection}
+          >
+            <Text style={styles.imagePickerText}>Upload Image</Text>
           </TouchableOpacity>
-        </Modal>
 
-        <Image
-          style={styles.imagePreview}
-          source={{ uri: "https://via.placeholder.com/150" }}
-        />
-
-        <TouchableOpacity style={styles.imagePicker}>
-          <Text style={styles.imagePickerText}>Upload Image</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.submitButton}>
-          <Text style={styles.submitButtonText}>Create New Event</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity
+            style={styles.submitButton}
+            onPress={handleFormSubmit}
+          >
+            <Text style={styles.submitButtonText}>Create New Event</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </View>
   );
 };
@@ -259,5 +409,19 @@ const styles = StyleSheet.create({
   submitButtonText: {
     color: "#fff",
     fontSize: 16,
+  },
+  pickerContainer: {
+    flex: 1,
+    gap: 5,
+  },
+  pickerButton: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
 });
