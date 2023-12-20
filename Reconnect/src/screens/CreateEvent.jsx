@@ -18,7 +18,7 @@ import { publicRoute } from "../../url/route";
 import axios from "axios";
 import Toast from "react-native-toast-message";
 
-export const CreateEvent = () => {
+export const CreateEvent = ({ navigation }) => {
   const [startMode, setStartMode] = useState("date");
   const [endMode, setEndMode] = useState("date");
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
@@ -116,7 +116,7 @@ export const CreateEvent = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-
+      navigation.navigate("Home");
       if (response.ok) {
         console.log("Form submitted successfully");
       } else {

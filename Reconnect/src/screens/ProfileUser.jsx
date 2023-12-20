@@ -169,7 +169,7 @@ export const ProfileUser = ({ route }) => {
           />
         ) : (
           <ReadMoreComponent
-            truncatedText={desc.substring(0, 100)}
+            truncatedText={desc?desc.substring(0, 100):"Empty"}
             fullText={desc}
             textStyle={{ textAlign: "center" }}
           />

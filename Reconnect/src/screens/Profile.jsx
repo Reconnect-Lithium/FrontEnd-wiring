@@ -233,7 +233,7 @@ export const Profile = ({ route }) => {
           />
         ) : (
           <ReadMoreComponent
-            truncatedText={desc.substring(0, 100)}
+            truncatedText={desc ? desc.substring(0, 100) : "Empty"}
             fullText={desc}
             textStyle={{ textAlign: "center" }}
           />
@@ -246,7 +246,7 @@ export const Profile = ({ route }) => {
           />
         ) : (
           <ReadMoreComponent
-            truncatedText={address.substring(0, 100)}
+            truncatedText={address ? address.substring(0, 100) : "Empty"}
             fullText={address}
             textStyle={{ textAlign: "center" }}
           />
