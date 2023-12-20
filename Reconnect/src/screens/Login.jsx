@@ -13,6 +13,7 @@ import { publicRoute } from "../../url/route";
 import axios from "axios";
 import { useContext } from "react";
 import { LoginContext } from "../../context/isLogin";
+import Toast from "react-native-toast-message";
 
 export const Login = ({ navigation, route }) => {
   const { setRole, setUserId, setIsLogin } = useContext(LoginContext);
@@ -32,18 +33,42 @@ export const Login = ({ navigation, route }) => {
 
   const submitLogin = async () => {
     try {
+      if (!form.email) {
+        Toast.show({
+          type: "error",
+          text1: "Login Error",
+          text2: "Email is required",
+        });
+        return;
+      }
+      if (!form.password) {
+        Toast.show({
+          type: "error",
+          text1: "Login Error",
+          text2: "Password is required",
+        });
+        return;
+      }
       const { data } = await axios({
         method: "post",
         url: publicRoute + "/login",
         data: form,
       }); // productions
-      // console.log(data, "?????");
+      console.log(data, "LOGIN?????");
       await loginAction(data);
       setIsLogin(true);
       setRole(data.role);
       setUserId(`${data.id}`);
     } catch (error) {
-      console.log(error, ">>>>>>>>");
+      if (error.response) {
+        Toast.show({
+          type: "error",
+          text1: "Login Error",
+          text2: error.response.data.message,
+        });
+      } else {
+        console.log(error, ">>>>>>>>");
+      }
     }
   };
 
@@ -51,6 +76,7 @@ export const Login = ({ navigation, route }) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.containerSecond}>
         <Text style={{ color: "grey" }}>English (United Kingdom)</Text>
+        <Toast />
         <View
           style={{
             width: "100%",

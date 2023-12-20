@@ -16,6 +16,7 @@ import { Button } from "react-native-paper";
 import * as SecureStore from "expo-secure-store";
 import { publicRoute } from "../../url/route";
 import axios from "axios";
+import Toast from "react-native-toast-message";
 
 export const CreateEvent = () => {
   const [startMode, setStartMode] = useState("date");
@@ -77,7 +78,6 @@ export const CreateEvent = () => {
     setEndTime(currentDate);
   };
 
-
   const handleImageSelection = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
@@ -97,12 +97,6 @@ export const CreateEvent = () => {
   };
 
   const handleFormSubmit = async () => {
-    // console.log("Form submitted!");
-    // console.log("Start Time: ", startTime);
-    // console.log("End Time: ", endTime);
-    // console.log("Description: ", description);
-    // console.log("Selected Category: ", selectedCategory);
-    // console.log("Selected Image: ", selectedImage);
     try {
       const token = await SecureStore.getItemAsync("auth");
       const formData = new FormData();
@@ -132,7 +126,10 @@ export const CreateEvent = () => {
         );
       }
     } catch (error) {
-      console.log("An error occured while submitting the form: ", error.response.data);
+      console.log(
+        "An error occured while submitting the form: ",
+        error.response.data
+      );
     }
   };
 
@@ -179,6 +176,7 @@ export const CreateEvent = () => {
           </View>
 
           <View style={styles.inputContainer}>
+            <Toast />
             <Text style={styles.label}>End Time</Text>
             <View style={styles.pickerContainer}>
               <Button

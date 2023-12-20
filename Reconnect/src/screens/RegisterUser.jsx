@@ -5,6 +5,7 @@ import Logo from "../../assets/Logo.png";
 import { useState } from "react";
 import { publicRoute } from "../../url/route";
 import axios from "axios";
+import Toast from "react-native-toast-message";
 
 export const RegisterUser = ({ navigation, route }) => {
   const [eyes, setEyes] = useState(false);
@@ -22,6 +23,30 @@ export const RegisterUser = ({ navigation, route }) => {
 
   const submitRegister = async () => {
     try {
+      if (!form.email) {
+        Toast.show({
+          type: "error",
+          text1: "Register Error",
+          text2: "Email is required",
+        });
+        return;
+      }
+      if (!form.username) {
+        Toast.show({
+          type: "error",
+          text1: "Register Error",
+          text2: "Username is required",
+        });
+        return;
+      }
+      if (!form.password) {
+        Toast.show({
+          type: "error",
+          text1: "Register Error",
+          text2: "Password is required",
+        });
+        return;
+      }
       // console.log(form);
       await axios({
         method: "post",
@@ -31,7 +56,15 @@ export const RegisterUser = ({ navigation, route }) => {
       // console.log(data, "????");
       navigation.navigate("Login");
     } catch (error) {
-      console.log(error, ">>>>>>>>");
+      if (error.response) {
+        Toast.show({
+          type: "error",
+          text1: "Register Error",
+          text2: error.response.data.message,
+        });
+      } else {
+        console.log(error, ">>>>>>>>");
+      }
     }
   };
 
@@ -40,6 +73,7 @@ export const RegisterUser = ({ navigation, route }) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.containerSecond}>
         <Text style={{ color: "grey" }}>English (United Kingdom)</Text>
+        <Toast />
         <View
           style={{
             width: "100%",

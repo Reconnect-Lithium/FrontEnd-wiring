@@ -11,6 +11,7 @@ import Logo from "../../assets/Logo.png";
 import { StyleSheet } from "react-native";
 import { publicRoute } from "../../url/route";
 import axios from "axios";
+import Toast from "react-native-toast-message";
 
 export const RegisterOwner = ({ navigation, route }) => {
   const [eyes, setEyes] = useState(false);
@@ -33,7 +34,62 @@ export const RegisterOwner = ({ navigation, route }) => {
 
   const submitRegister = async () => {
     try {
-      console.log(form);
+      if (!form.email) {
+        Toast.show({
+          type: "error",
+          text1: "Register Error",
+          text2: "Email is required",
+        });
+        return;
+      }
+      if (!form.username) {
+        Toast.show({
+          type: "error",
+          text1: "Register Error",
+          text2: "Username is required",
+        });
+        return;
+      }
+      if (!form.password) {
+        Toast.show({
+          type: "error",
+          text1: "Register Error",
+          text2: "Password is required",
+        });
+        return;
+      }
+      if (!form.longitude) {
+        Toast.show({
+          type: "error",
+          text1: "Register Error",
+          text2: "Cafe Longitude is required",
+        });
+        return;
+      }
+      if (!form.latitude) {
+        Toast.show({
+          type: "error",
+          text1: "Register Error",
+          text2: "Cafe Latitude is required",
+        });
+        return;
+      }
+      if (!form.name) {
+        Toast.show({
+          type: "error",
+          text1: "Register Error",
+          text2: "Cafe name is required",
+        });
+        return;
+      }
+      if (!form.address) {
+        Toast.show({
+          type: "error",
+          text1: "Register Error",
+          text2: "Cafe address is required",
+        });
+        return;
+      }
       await axios({
         method: "post",
         url: publicRoute + "/register/owner",
@@ -50,7 +106,15 @@ export const RegisterOwner = ({ navigation, route }) => {
       //   console.log(data, "????");
       navigation.navigate("Login");
     } catch (error) {
-      console.log(error, ">>>>>>>>");
+      if (error.response) {
+        Toast.show({
+          type: "error",
+          text1: "Register Error",
+          text2: error.response.data.message,
+        });
+      } else {
+        console.log(error, ">>>>>>>>");
+      }
     }
   };
 
@@ -58,6 +122,7 @@ export const RegisterOwner = ({ navigation, route }) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.containerSecond}>
         <Text style={{ color: "grey" }}>English (United Kingdom)</Text>
+        <Toast />
         <View
           style={{
             flex: 1,
