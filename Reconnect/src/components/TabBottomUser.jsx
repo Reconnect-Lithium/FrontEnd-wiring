@@ -1,13 +1,15 @@
-import React from "react";
+import React, { useContext } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { ProfileUser } from "../screens/ProfileUser";
 import UserMap from "../screens/UserMap";
 import { HomePage } from "../screens/HomePage";
+import { LoginContext } from "../../context/isLogin";
 
 const Tab = createBottomTabNavigator();
 
 export const TabBottomUser = ({ navigation, route }) => {
+  const { userId } = useContext(LoginContext);
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -52,6 +54,7 @@ export const TabBottomUser = ({ navigation, route }) => {
         name="Profile"
         options={{ headerShown: false }}
         component={ProfileUser}
+        initialParams={{ UserId: userId }}
       />
     </Tab.Navigator>
   );

@@ -1,13 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { HomePage } from "../screens/HomePage";
 import { Profile } from "../screens/Profile";
 import { CreateEvent } from "../screens/CreateEvent";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import { LoginContext } from "../../context/isLogin";
 
 const Tab = createBottomTabNavigator();
 
 export const TabBottom = ({ navigation, route }) => {
+  const { userId } = useContext(LoginContext);
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -54,6 +56,7 @@ export const TabBottom = ({ navigation, route }) => {
         name="Profile"
         options={{ headerShown: false }}
         component={Profile}
+        initialParams={{ UserId: undefined }}
       />
     </Tab.Navigator>
   );

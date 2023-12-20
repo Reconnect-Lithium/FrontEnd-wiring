@@ -7,9 +7,6 @@ export default function OccasionListItem({
   handleClose,
 }) {
   const navigation = useNavigation();
-  const handleFollowEvent = () => {
-    console.log("Follow Event clicked");
-  };
   const dateFormatStart = new Date(data.startTime).toLocaleString();
   const dateFormatEnd = new Date(data.endTime).toLocaleString();
   return (
@@ -54,11 +51,10 @@ export default function OccasionListItem({
                 navigation.navigate("Detail", {
                   images: data.eventPhoto,
                   cafeName: data.eventName,
+                  cafePhoto: data.photo,
                   eventName: data.name,
                   eventTime: `${dateFormatStart} ${dateFormatEnd}`,
                   eventDescription: data.description,
-                  isEventEnded: false,
-                  onFollowEvent: handleFollowEvent,
                   OccasionId: data.eventId,
                 })
               }

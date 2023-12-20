@@ -19,11 +19,11 @@ export const Detail = ({ navigation, route }) => {
     images,
     comments,
     cafeName,
+    cafePhoto,
+    cafeOwnerId,
     eventName,
     eventTime,
     eventDescription,
-    isEventEnded,
-    handleFollowEvent,
     OccasionId,
   } = route.params;
 
@@ -63,11 +63,11 @@ export const Detail = ({ navigation, route }) => {
         <ImageSlider
           images={images}
           cafeName={cafeName}
+          cafePhoto={cafePhoto}
+          cafeOwnerId={cafeOwnerId}
           eventName={eventName}
           eventTime={eventTime}
           eventDescription={eventDescription}
-          isEventEnded={isEventEnded}
-          onFollowEvent={handleFollowEvent}
         />
         <TouchableOpacity
           style={styles.joinButton}

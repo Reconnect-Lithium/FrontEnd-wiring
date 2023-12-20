@@ -9,17 +9,19 @@ import {
 } from "react-native";
 import Swiper from "react-native-swiper";
 import { ReadMoreComponent } from "./ReadMore";
+import { useNavigation } from "@react-navigation/native";
 
 export const ImageSlider = ({
   images,
   cafeName,
+  cafePhoto,
+  cafeOwnerId,
   eventName,
   eventTime,
   eventDescription,
-  isEventEnded,
-  onFollowEvent,
   onPressImage,
 }) => {
+  const navigation = useNavigation();
   const [expanded, setExpanded] = React.useState(false);
 
   const getTruncatedText = (text) => {
@@ -37,11 +39,12 @@ export const ImageSlider = ({
         </Swiper>
       </TouchableOpacity>
       <View style={styles.eventInfoContainer}>
-        <TouchableOpacity>
-          <Image
-            source={{ uri: "https://via.placeholder.com/50" }}
-            style={styles.profileIcon}
-          />
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate("Profile", { UserId: cafeOwnerId })
+          }
+        >
+          <Image source={{ uri: cafePhoto }} style={styles.profileIcon} />
         </TouchableOpacity>
         <View style={styles.infoContainer}>
           <TouchableOpacity>
@@ -49,22 +52,14 @@ export const ImageSlider = ({
               <Text style={styles.cafeName}>{cafeName}</Text>
             </View>
           </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("Profile", { UserId: cafeOwnerId })
+            }
+          >
             <Text style={styles.eventName}>{eventName}</Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          style={[
-            styles.followButton,
-            isEventEnded && styles.followButtonDisabled,
-          ]}
-          onPress={onFollowEvent}
-          disabled={isEventEnded}
-        >
-          <Text style={styles.followButtonText}>
-            {isEventEnded ? "Event Ended" : "Follow"}
-          </Text>
-        </TouchableOpacity>
       </View>
       <View style={styles.eventDetailsContainer}>
         <ReadMoreComponent

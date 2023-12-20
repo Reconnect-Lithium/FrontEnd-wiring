@@ -25,9 +25,9 @@ const Tab = createMaterialTopTabNavigator();
 export const ProfileUser = ({ route }) => {
   const { userId } = useContext(LoginContext);
   let userIdParams = undefined;
-  if (route.params) {
-    userIdParams = route.params.UserId;
-  }
+  // if (route.params) {
+  //   userIdParams = route.params.UserId;
+  // }
 
   const [profilePhoto, setProfilePhoto] = useState(
     "https://via.placeholder.com/150"
@@ -100,13 +100,14 @@ export const ProfileUser = ({ route }) => {
         let match = /\.(\w+)$/.exec(filename);
         let type = match ? `image/${match[1]}` : `image`;
         const formData = new FormData();
-        formData.append("photo", { uri: localUri, name: filename, type });
+        formData.append("avatar", { uri: localUri, name: filename, type });
         const token = await SecureStore.getItemAsync("auth");
         await axios({
           method: "patch",
           url: publicRoute + `/user/avatar/${userId}`,
-          data: { avatar: result.assets[0].uri },
+          data: formData,
           headers: {
+            "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
           },
         });

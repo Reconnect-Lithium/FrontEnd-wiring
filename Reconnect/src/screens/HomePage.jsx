@@ -44,8 +44,7 @@ export const HomePage = ({ navigation, route }) => {
   // {{host}}/occasion?longitude=106.805234&latitude=-1.272244&CategoryId=2
   const [ctgy, setCtgy] = useState("");
   const [listEvent, setListEvent] = useState([]);
-  
-  
+
   useEffect(() => {
     fetchingEvent();
   }, [ctgy]);
@@ -73,18 +72,11 @@ export const HomePage = ({ navigation, route }) => {
       setIsLoading(false);
     }
   };
-  
+
   const [selectedFilter, setSelectedFilter] = useState("");
-  const [isFollowing, setIsFollowing] = useState(false);
 
   const handleSelectFilter = (filter) => {
     setSelectedFilter(filter);
-  };
-
-  const isEventEnded = false;
-  const handleFollowEvent = () => {
-    console.log("Follow Event clicked");
-    setIsFollowing(!isFollowing);
   };
 
   const getGreeting = () => {
@@ -128,20 +120,20 @@ export const HomePage = ({ navigation, route }) => {
                 key={el.eventId}
                 images={el.eventPhoto}
                 cafeName={el.eventName}
+                cafePhoto={el.photo}
                 eventName={el.name}
+                cafeOwnerId={el.UserId}
                 eventTime={`${dateFormatStart} ${dateFormatEnd}`}
                 eventDescription={el.description}
-                isEventEnded={isEventEnded}
-                onFollowEvent={handleFollowEvent}
                 onPressImage={() =>
                   navigation.navigate("Detail", {
                     images: el.eventPhoto,
                     cafeName: el.eventName,
+                    cafePhoto: el.photo,
+                    cafeOwnerId: el.UserId,
                     eventName: el.name,
                     eventTime: `${dateFormatStart} ${dateFormatEnd}`,
                     eventDescription: el.description,
-                    isEventEnded: isEventEnded,
-                    onFollowEvent: handleFollowEvent,
                     OccasionId: el.eventId,
                   })
                 }

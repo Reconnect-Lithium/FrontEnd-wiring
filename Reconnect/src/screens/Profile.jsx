@@ -19,6 +19,7 @@ import { publicRoute } from "../../url/route";
 import { LoginContext } from "../../context/isLogin";
 import * as SecureStore from "expo-secure-store";
 import { ReadMoreComponent } from "../components/ReadMore";
+import { useFocusEffect } from "@react-navigation/native";
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -46,9 +47,11 @@ export const Profile = ({ route }) => {
   const [eventhistory, setEventHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    fetchingCafe();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchingCafe();
+    }, [route.params.UserId])
+  );
 
   const fetchingCafe = async () => {
     setIsLoading(true);
