@@ -8,14 +8,9 @@ import {
   Image,
 } from "react-native";
 
-const historyData = [
-  { id: "1", title: "Coffee Workshop", date: "2021-01-01" },
-  { id: "2", title: "Latte Art Competition", date: "2021-02-15" },
-  { id: "3", title: "Barista Meetup", date: "2021-03-20" },
-];
-
 export const History = ({ eventhistory }) => {
   const screenWidth = Dimensions.get("window").width;
+  const imageWidth = screenWidth - 32 * 2;
 
   return (
     <Fragment>
@@ -30,7 +25,7 @@ export const History = ({ eventhistory }) => {
             <View style={styles.item}>
               <Image
                 source={{ uri: item.photo }}
-                style={[styles.image, { width: screenWidth - 32 }]}
+                style={[styles.image, { width: imageWidth }]}
               />
               <Text style={styles.title}>{item.eventName}</Text>
               <Text style={styles.date}>{`Start :${item.startTime}`}</Text>

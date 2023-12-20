@@ -12,7 +12,7 @@ export class ReadMoreComponent extends React.Component {
 
   renderTruncatedFooter = (handlePress) => {
     return (
-      <Text style={styles.footerText} onPress={handlePress}>
+      <Text style={[styles.footerText, this.props.textStyle]} onPress={handlePress}>
         Read more
       </Text>
     );
@@ -20,7 +20,7 @@ export class ReadMoreComponent extends React.Component {
 
   renderRevealedFooter = (handlePress) => {
     return (
-      <Text style={styles.footerText} onPress={handlePress}>
+      <Text style={[styles.footerText, this.props.textStyle]} onPress={handlePress}>
         Show less
       </Text>
     );
@@ -32,12 +32,12 @@ export class ReadMoreComponent extends React.Component {
 
   render() {
     const { expanded } = this.state;
-    const { truncatedText, fullText } = this.props;
+    const { truncatedText, fullText, textStyle = {} } = this.props;
 
     return (
       <View>
         {expanded ? (
-          <Text>
+          <Text style={[{}, textStyle]}>
             {fullText}
           </Text>
         ) : (
@@ -45,14 +45,15 @@ export class ReadMoreComponent extends React.Component {
             numberOfLines={3}
             renderTruncatedFooter={this.renderTruncatedFooter}
             renderRevealedFooter={this.renderRevealedFooter}
-            onReady={this.handleTextReady}
           >
-            <Text>{truncatedText}</Text>
+            <Text style={[{}, textStyle]}>
+              {truncatedText}
+            </Text>
           </ReadMore>
         )}
         {truncatedText && truncatedText.length > 0 && (
           <TouchableOpacity onPress={this.toggleReadMore}>
-            <Text style={styles.footerText}>
+            <Text style={[styles.footerText, textStyle]}>
               {expanded ? 'Show less' : 'Read more'}
             </Text>
           </TouchableOpacity>

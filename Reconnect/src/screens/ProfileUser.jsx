@@ -18,6 +18,7 @@ import { publicRoute } from "../../url/route";
 import { LoginContext } from "../../context/isLogin";
 import * as SecureStore from "expo-secure-store";
 import { useFocusEffect } from "@react-navigation/native";
+import { ReadMoreComponent } from "../components/ReadMore";
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -67,6 +68,7 @@ export const ProfileUser = ({ route }) => {
       console.log(error);
     }
   };
+
   const pickImage = async () => {
     if (userIdParams === undefined || userIdParams == userId) {
       let result = await ImagePicker.launchImageLibraryAsync({
@@ -98,6 +100,7 @@ export const ProfileUser = ({ route }) => {
       }
     }
   };
+
   const handleEditProfile = async () => {
     if (editing) {
       const token = await SecureStore.getItemAsync("auth");
@@ -126,6 +129,7 @@ export const ProfileUser = ({ route }) => {
     }
     setEditing(!editing);
   };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <TopBar />
@@ -149,7 +153,11 @@ export const ProfileUser = ({ route }) => {
             onChangeText={setDescEdit}
           />
         ) : (
-          <Text style={styles.desc}>{desc}</Text>
+          <ReadMoreComponent
+            truncatedText={desc.substring(0, 100)}
+            fullText={desc}
+            textStyle={{ textAlign: "center" }}
+          />
         )}
         {userIdParams === undefined || userIdParams == userId ? (
           <TouchableOpacity style={styles.button} onPress={handleEditProfile}>
@@ -195,6 +203,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "bold",
     textAlign: "center",
+    marginBottom: 10,
   },
   desc: {
     fontSize: 16,
@@ -203,12 +212,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   button: {
-    backgroundColor: "grey",
+    backgroundColor: "#5E17EB",
     padding: 12,
-    borderRadius: 25,
+    borderRadius: 10,
     alignItems: "center",
     marginHorizontal: 50,
-    marginBottom: 10,
+    marginVertical: 10,
   },
   buttonMap: {
     backgroundColor: "#5E17EB",

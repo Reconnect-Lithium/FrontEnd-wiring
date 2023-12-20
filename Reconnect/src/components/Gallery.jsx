@@ -1,34 +1,80 @@
-import React from "react";
-import { View, Image, FlatList, StyleSheet, Dimensions } from "react-native";
+import React, { useState } from 'react';
+import {
+  Modal,
+  View,
+  Image,
+  FlatList,
+  StyleSheet,
+  Dimensions,
+  TouchableOpacity,
+} from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { Ionicons } from '@expo/vector-icons';
 
-const { width } = Dimensions.get("window");
+const { width } = Dimensions.get('window');
 
-// const images = [
-//   { id: "1", uri: "https://via.placeholder.com/150" },
-//   { id: "2", uri: "https://via.placeholder.com/150" },
-//   { id: "3", uri: "https://via.placeholder.com/150" },
-// ];
-
-export const Gallery = ({ galleryPhoto }) => {
+export const Gallery = ({ galleryPhoto, setGalleryPhoto }) => {
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  
   const imageWidth = width / 2 - 8;
+
+  const openModal = (item) => {
+    setSelectedImage(item);
+    setModalVisible(true);
+  };
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.cancelled) {
+      setGalleryPhoto([...galleryPhoto, result.uri]);
+    }
+  };
+
   return (
     <View style={styles.container}>
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(!modalVisible);
+        }}
+      >
+        <View style={styles.modalView}>
+          <TouchableOpacity
+            style={styles.modalCloseButton}
+            onPress={() => setModalVisible(!modalVisible)}
+          >
+            <Image source={{ uri: selectedImage }} style={styles.modalImage} />
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
       <FlatList
         data={galleryPhoto}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
-          <View
-            style={[
-              styles.imageWrapper,
-              { width: imageWidth, height: imageWidth },
-            ]}
+          <TouchableOpacity
+            style={[styles.imageWrapper, { width: imageWidth, height: imageWidth }]}
+            onPress={() => openModal(item)}
           >
             <Image source={{ uri: item }} style={styles.image} />
-          </View>
+          </TouchableOpacity>
         )}
         numColumns={2}
         columnWrapperStyle={styles.row}
       />
+
+      <TouchableOpacity style={styles.addButton} onPress={pickImage}>
+        <Ionicons name="add-circle" size={50} color="#5E17EB" />
+      </TouchableOpacity>
     </View>
   );
 };
@@ -57,5 +103,27 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     borderRadius: 10,
+  },
+  modalView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalImage: {
+    width: width - 40,
+    height: width - 40,
+    borderRadius: 20,
+  },
+  modalCloseButton: {
+    width: width - 40,
+    height: width - 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addButton: {
+    position: 'absolute',
+    bottom: 10,
+    right: 10,
   },
 });
