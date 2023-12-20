@@ -44,7 +44,7 @@ export const HomePage = ({ navigation, route }) => {
   const [listEvent, setListEvent] = useState([]);
   useEffect(() => {
     fetchingEvent();
-  }, []);
+  }, [ctgy]);
   const fetchingEvent = async () => {
     try {
       const token = await SecureStore.getItemAsync("auth");
@@ -54,9 +54,7 @@ export const HomePage = ({ navigation, route }) => {
         method: "get",
         url:
           publicRoute +
-          `/occasion?longitude=106.805234&latitude=-6.272244&CategoryId=`,
-        // publicRoute +
-        // `/occasion?longitude=${location.coords.longitude}&latitude=${location.coords.latitude}&CategoryId=${ctgy}`,
+          `/occasion?longitude=${location.coords.longitude}&latitude=${location.coords.latitude}&CategoryId=${ctgy}`,
         headers: {
           Authorization: "Bearer " + token,
         },
@@ -118,7 +116,7 @@ export const HomePage = ({ navigation, route }) => {
       <View style={styles.greetingContainer}>
         <Text style={styles.greetingText}>{getGreeting()}, User!</Text>
       </View>
-      <Filter onSelectFilter={handleSelectFilter} />
+      <Filter onSelectFilter={handleSelectFilter} setCtgy={setCtgy} />
       <ScrollView>
         <View style={styles.bannerShadow}>
           <Image

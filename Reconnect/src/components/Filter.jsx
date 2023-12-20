@@ -1,20 +1,27 @@
 import React, { useState } from "react";
-import { View, StyleSheet, TouchableOpacity, Text, ScrollView } from "react-native";
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Text,
+  ScrollView,
+} from "react-native";
 
-export const Filter = ({ onSelectFilter }) => {
+export const Filter = ({ onSelectFilter, setCtgy }) => {
   const [selectedCategory, setSelectedCategory] = useState("all");
 
   const categories = [
-    { label: "All", value: "all" },
-    { label: "Music", value: "music" },
-    { label: "Stand Up Comedy", value: "standUpComedy" },
-    { label: "Performance", value: "performance" },
-    { label: "Competitions", value: "competitions" },
+    { id: "", label: "All", value: "all" },
+    { id: 1, label: "Music", value: "music" },
+    { id: 2, label: "Stand Up Comedy", value: "standUpComedy" },
+    { id: 3, label: "Performance", value: "performance" },
+    { id: 4, label: "Competitions", value: "competitions" },
   ];
 
   const handleCategoryChange = (category) => {
-    setSelectedCategory(category);
-    onSelectFilter(category);
+    setSelectedCategory(category.value);
+    onSelectFilter(category.value);
+    setCtgy(category.id);
   };
 
   return (
@@ -31,12 +38,13 @@ export const Filter = ({ onSelectFilter }) => {
               styles.button,
               selectedCategory === category.value && styles.selectedButton,
             ]}
-            onPress={() => handleCategoryChange(category.value)}
+            onPress={() => handleCategoryChange(category)}
           >
             <Text
               style={[
                 styles.buttonText,
-                selectedCategory === category.value && styles.selectedButtonText,
+                selectedCategory === category.value &&
+                  styles.selectedButtonText,
               ]}
             >
               {category.label}
@@ -61,8 +69,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: "#eee",
     marginRight: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   selectedButton: {
     backgroundColor: "#5E17EB",
@@ -70,7 +78,7 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 16,
     color: "#333",
-    textAlign: 'center',
+    textAlign: "center",
   },
   selectedButtonText: {
     color: "#fff",
