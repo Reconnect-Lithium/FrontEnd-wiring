@@ -5,13 +5,14 @@ import { Marker } from "react-native-maps";
 export default function MarkerComponent({ data, handlePress }) {
   return (
     <Marker
+      key={data.id}
       onPress={() => handlePress(data)}
       coordinate={{
-        latitude: data.latitude,
-        longitude: data.longitude,
+        latitude: data.location.coordinates[1],
+        longitude: data.location.coordinates[0],
       }}
-      title={data.title}
-      description={data.title}
+      title={data.eventName}
+      description={data.name}
     ></Marker>
   );
 }

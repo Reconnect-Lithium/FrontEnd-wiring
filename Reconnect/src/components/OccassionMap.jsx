@@ -1,13 +1,20 @@
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import React from "react";
+import { useNavigation } from "@react-navigation/native";
 export default function OccasionListItem({
   data,
   handleDirection,
   handleClose,
 }) {
+  const navigation = useNavigation();
+  const handleFollowEvent = () => {
+    console.log("Follow Event clicked");
+  };
+  const dateFormatStart = new Date(data.startTime).toLocaleString();
+  const dateFormatEnd = new Date(data.endTime).toLocaleString();
   return (
     <View style={styles.card}>
-      <Image source={{ uri: data.image }} style={styles.image} />
+      <Image source={{ uri: data.eventPhoto }} style={styles.image} />
       <View
         style={{
           flexDirection: "column",
@@ -24,11 +31,11 @@ export default function OccasionListItem({
               X
             </Text>
           </TouchableOpacity>
-          <Text style={{ fontWeight: "bold" }}>{data.title}</Text>
-          <Text style={{ color: "gray" }}>by: cafe name</Text>
-          <Text style={{ color: "gray" }}>start time :</Text>
-          <Text style={{ color: "gray" }}>end time :</Text>
-          <Text style={{ color: "gray" }}>category :</Text>
+          <Text style={{ fontWeight: "bold" }}>{data.eventName}</Text>
+          <Text style={{ color: "gray" }}>by:{data.name}</Text>
+          <Text style={{ color: "gray" }}>start time :{data.startTime}</Text>
+          <Text style={{ color: "gray" }}>end time :{data.endTime}</Text>
+          <Text style={{ color: "gray" }}>category :{data.categoryName}</Text>
           <View style={{ flexDirection: "row", marginTop: 5 }}>
             <TouchableOpacity
               onPress={() => handleDirection(data)}
@@ -37,7 +44,18 @@ export default function OccasionListItem({
               <Text style={styles.textDirection}>Direction</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => handleDirection(data)}
+              onPress={() =>
+                navigation.navigate("Detail", {
+                  images: data.eventPhoto,
+                  cafeName: data.eventName,
+                  eventName: data.name,
+                  eventTime: `${dateFormatStart} ${dateFormatEnd}`,
+                  eventDescription: data.description,
+                  isEventEnded: false,
+                  onFollowEvent: handleFollowEvent,
+                  OccasionId: data.eventId,
+                })
+              }
               style={styles.touchableDetail}
             >
               <Text style={styles.textDirection}>Show Detail</Text>
