@@ -21,7 +21,7 @@ import { publicRoute } from "../../url/route";
 const socket = io(publicRoute);
 
 export const RoomChat = ({ route, navigation }) => {
-  const { roomId } = route.params;
+  const { roomId, eventId } = route.params;
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -31,10 +31,12 @@ export const RoomChat = ({ route, navigation }) => {
   const scrollViewRef = useRef();
   const typingAnimation = useRef(new Animated.Value(0)).current;
   const [user, setUser] = useState("");
+  const [NameEvent, setNameEvent] = useState("");
 
   useEffect(() => {
     fetching(roomId);
     findUser();
+    eventName();
     socket.emit("CLIENT_ROOMS", roomId);
   }, [roomId]);
 
@@ -74,7 +76,24 @@ export const RoomChat = ({ route, navigation }) => {
     // console.log(data.username, "?>?>");
     setUser(data.username);
   };
-  // console.log(user, "?>?>?>?!!s");
+
+  const eventName = async () => {
+    try {
+      const token = await SecureStore.getItemAsync("auth");
+
+      const { data } = await axios({
+        method: "get",
+        url: publicRoute + "/occasion/" + eventId,
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      });
+      // console.log(data.eventName, "?>?>?>?");
+      setNameEvent(data.eventName);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   useEffect(() => {
     if (participantsTyping.length > 0) {
@@ -169,7 +188,7 @@ export const RoomChat = ({ route, navigation }) => {
         >
           <Ionicons name="chevron-back" size={30} color="#5E17EB" />
         </TouchableOpacity>
-        <Text style={styles.userName}>{user}</Text>
+        <Text style={styles.userName}>{NameEvent}</Text>
       </View>
 
       <FlatList

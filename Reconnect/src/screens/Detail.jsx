@@ -41,7 +41,10 @@ export const Detail = ({ navigation, route }) => {
       });
       console.log(data, ">>>>>>>>");
       // // navigation.navigate("RoomChat", { roomId: data.id });
-      navigation.navigate("RoomChat", { roomId: data.RoomId });
+      navigation.navigate("RoomChat", {
+        roomId: data.RoomId,
+        eventId: data.OccasionId,
+      });
     } catch (error) {
       console.log(error, ">>>>>>>>");
     }
