@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useId } from "react";
 import {
   View,
   Text,
@@ -30,9 +30,11 @@ export const RoomChat = ({ route, navigation }) => {
   const insets = useSafeAreaInsets();
   const scrollViewRef = useRef();
   const typingAnimation = useRef(new Animated.Value(0)).current;
+  const [user, setUser] = useState("");
 
   useEffect(() => {
     fetching(roomId);
+    findUser();
     socket.emit("CLIENT_ROOMS", roomId);
   }, [roomId]);
 
@@ -52,11 +54,27 @@ export const RoomChat = ({ route, navigation }) => {
           Authorization: "Bearer " + token,
         },
       });
-      setMessages(data);
+      setMessages(data.reverse());
     } catch (error) {
       console.log(error);
     }
   };
+
+  const findUser = async () => {
+    const userId = await SecureStore.getItemAsync("userId");
+    const token = await SecureStore.getItemAsync("auth");
+
+    const { data } = await axios({
+      method: "get",
+      url: publicRoute + "/user/" + userId,
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    });
+    // console.log(data.username, "?>?>");
+    setUser(data.username);
+  };
+  // console.log(user, "?>?>?>?!!s");
 
   useEffect(() => {
     if (participantsTyping.length > 0) {
@@ -82,34 +100,56 @@ export const RoomChat = ({ route, navigation }) => {
   }, [participantsTyping, typingAnimation]);
 
   const getMessageTextColor = (sender) => {
-    return sender === "me" ? "#fff" : "#333";
+    return sender === user ? "#fff" : "#333";
   };
 
-  const handleSend = () => {
-    if (text.trim()) {
-      const send = {
-        newMessage: { id: Date.now(), text, sender: "me", time: new Date() },
-        roomId,
-      };
+  const handleSend = async () => {
+    try {
+      if (text.trim()) {
+        const token = await SecureStore.getItemAsync("auth");
+        // console.log(roomId);
+        const { data } = await axios({
+          method: "post",
+          url: publicRoute + "/room/create-message/" + roomId,
+          headers: {
+            Authorization: "Bearer " + token,
+          },
+          data: {
+            message: text,
+          },
+        }); // productions
 
-      socket.emit("CLIENT_SEND_MSG", send);
+        const send = {
+          newMessage: data,
+          roomId,
+        };
 
-      setMessages((prevMessages) => [...prevMessages, send.newMessage]);
-      setText("");
-      scrollViewRef.current.scrollToEnd({ animated: true });
+        // const send = {
+        //   newMessage: { id: Date.now(), text, sender: "me", time: new Date() },
+        //   roomId,
+        // };
+
+        socket.emit("CLIENT_SEND_MSG", send);
+
+        setMessages((prevMessages) => [...prevMessages, send.newMessage]);
+        setText("");
+        scrollViewRef.current.scrollToEnd({ animated: true });
+      }
+    } catch (error) {
+      console.log(error);
     }
   };
 
   const startTyping = () => {
-    if (!participantsTyping.includes("me")) {
-      setParticipantsTyping([...participantsTyping, "me"]);
+    if (!participantsTyping.includes(user)) {
+      setParticipantsTyping([...participantsTyping, user]);
     }
   };
 
   const stopTyping = () => {
-    if (participantsTyping.includes("me")) {
+    if (participantsTyping.includes(user)) {
       setParticipantsTyping(
-        participantsTyping.filter((participant) => participant !== "me")
+        participantsTyping.filter((participant) => participant !== user)
       );
     }
   };
@@ -120,7 +160,6 @@ export const RoomChat = ({ route, navigation }) => {
   };
 
   const timeAgo = (time) => moment(time).fromNow();
-
   return (
     <SafeAreaView style={[styles.safeArea, { paddingTop: insets.top }]}>
       <View style={styles.header}>
@@ -130,12 +169,9 @@ export const RoomChat = ({ route, navigation }) => {
         >
           <Ionicons name="chevron-back" size={30} color="#5E17EB" />
         </TouchableOpacity>
-        <Image
-          style={styles.profileIcon}
-          source={{ uri: "https://via.placeholder.com/40" }}
-        />
-        <Text style={styles.userName}>User Name</Text>
+        <Text style={styles.userName}>{user}</Text>
       </View>
+
       <FlatList
         style={styles.messagesContainer}
         data={messages}
@@ -148,25 +184,27 @@ export const RoomChat = ({ route, navigation }) => {
           <Animated.View
             style={[
               styles.messageBubble,
-              item.sender === "me" ? styles.myMessage : styles.otherMessage,
+              item.User.username === user
+                ? styles.myMessage
+                : styles.otherMessage,
             ]}
           >
             <View style={styles.messageInfo}>
               <Image
                 style={styles.profileIconSmall}
-                source={{ uri: "https://via.placeholder.com/30" }}
+                source={{ uri: item.User.avatar }}
               />
-              <Text style={styles.senderName}>{item.sender}</Text>
+              <Text style={styles.senderName}>{item.User.username}</Text>
             </View>
             <Text
               style={[
                 styles.messageText,
-                { color: getMessageTextColor(item.sender) },
+                { color: getMessageTextColor(item.User.username) },
               ]}
             >
-              {item.text}
+              {item.message}
             </Text>
-            <Text style={styles.timeText}>{timeAgo(item.time)}</Text>
+            <Text style={styles.timeText}>{timeAgo(item.createdAt)}</Text>
           </Animated.View>
         )}
       />
