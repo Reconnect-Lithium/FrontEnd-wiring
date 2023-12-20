@@ -68,33 +68,9 @@ export const HomePage = ({ navigation, route }) => {
 
   const [selectedFilter, setSelectedFilter] = useState("");
   const [isFollowing, setIsFollowing] = useState(false);
-  const [comments, setComments] = useState([
-    {
-      id: "1",
-      text: "Great event!",
-      username: "User1",
-      userImageUrl: "https://via.placeholder.com/50",
-    },
-    {
-      id: "2",
-      text: "Looking forward to this.",
-      username: "User2",
-      userImageUrl: "https://via.placeholder.com/50",
-    },
-  ]);
 
   const handleSelectFilter = (filter) => {
     setSelectedFilter(filter);
-  };
-
-  const handleAddComment = (commentText) => {
-    const newComment = {
-      id: Date.now().toString(),
-      text: commentText,
-      username: "NewUser",
-      userImageUrl: "https://via.placeholder.com/50",
-    };
-    setComments([...comments, newComment]);
   };
 
   const isEventEnded = false;

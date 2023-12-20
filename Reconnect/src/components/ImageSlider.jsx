@@ -45,7 +45,9 @@ export const ImageSlider = ({
         </TouchableOpacity>
         <View style={styles.infoContainer}>
           <TouchableOpacity>
-            <Text style={styles.cafeName}>{cafeName}</Text>
+            <View style={styles.cafeNameBackground}>
+              <Text style={styles.cafeName}>{cafeName}</Text>
+            </View>
           </TouchableOpacity>
           <TouchableOpacity>
             <Text style={styles.eventName}>{eventName}</Text>
@@ -106,10 +108,23 @@ const styles = StyleSheet.create({
   infoContainer: {
     flex: 1,
   },
+  cafeNameBackground: {
+    backgroundColor: "rgba(255, 255, 255, 0.8)", // Semi-transparent background
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    alignSelf: "flex-start", // Ensure it wraps the content
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: , // For Android
+  },
   cafeName: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#333",
+    color: "#6b50a3",
+    textAlign: "center",
   },
   eventName: {
     fontSize: 16,
@@ -144,6 +159,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 10,
     paddingTop: 0,
+    paddingBottom: 25,
   },
   eventTime: {
     paddingTop: 5,
