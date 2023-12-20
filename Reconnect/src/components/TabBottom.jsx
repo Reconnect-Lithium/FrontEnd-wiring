@@ -25,7 +25,7 @@ export const TabBottom = ({ navigation, route }) => {
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: "#5E17EB",
-        tabBarInactiveTintColor: "#dcdde1",
+        tabBarInactiveTintColor: "#5E17EB",
         tabBarStyle: {
           backgroundColor: "#fff",
           borderTopLeftRadius: 20,
