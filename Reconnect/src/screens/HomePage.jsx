@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Image,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import { TopBar } from "../components/TopBar";
 import { Filter } from "../components/Filter";
@@ -21,6 +22,7 @@ const screenWidth = Dimensions.get("window").width;
 const bannerHeight = screenWidth * (250 / 200);
 
 export const HomePage = ({ navigation, route }) => {
+  const [isLoading, setIsLoading] = useState(false);
   // mas ardi
   const [location, setLocation] = useState({
     coords: { latitude: -6.2530588, longitude: 106.8152 },
@@ -42,10 +44,14 @@ export const HomePage = ({ navigation, route }) => {
   // {{host}}/occasion?longitude=106.805234&latitude=-1.272244&CategoryId=2
   const [ctgy, setCtgy] = useState("");
   const [listEvent, setListEvent] = useState([]);
+  
+  
   useEffect(() => {
     fetchingEvent();
   }, [ctgy]);
+
   const fetchingEvent = async () => {
+    setIsLoading(true);
     try {
       const token = await SecureStore.getItemAsync("auth");
       // console.log(token);
@@ -61,11 +67,13 @@ export const HomePage = ({ navigation, route }) => {
       });
       // console.log(data, ">>>>>>>>>>???");
       setListEvent(data);
+      setIsLoading(false);
     } catch (error) {
       console.log(error);
+      setIsLoading(false);
     }
   };
-
+  
   const [selectedFilter, setSelectedFilter] = useState("");
   const [isFollowing, setIsFollowing] = useState(false);
 
@@ -85,6 +93,15 @@ export const HomePage = ({ navigation, route }) => {
     if (hour < 17) return "Good Afternoon";
     return "Good Evening";
   };
+
+  // if (isLoading) {
+  //   return (
+  //     <View style={styles.loadingContainer}>
+  //       <Image source={require("../../assets/Logo.png")} style={styles.logo} />
+  //       <ActivityIndicator size="large" color="#5E17EB" />
+  //     </View>
+  //   );
+  // }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -140,6 +157,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
+  },
+  logo: {
+    width: 150,
+    height: 150,
+    marginBottom: 20,
   },
   content: {
     padding: 10,

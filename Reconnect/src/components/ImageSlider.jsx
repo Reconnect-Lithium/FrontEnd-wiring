@@ -109,16 +109,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cafeNameBackground: {
-    backgroundColor: "rgba(255, 255, 255, 0.8)", // Semi-transparent background
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
     borderRadius: 10,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    alignSelf: "flex-start", // Ensure it wraps the content
+    alignSelf: "flex-start",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
-    elevation: , // For Android
+    elevation: 5,
   },
   cafeName: {
     fontSize: 18,

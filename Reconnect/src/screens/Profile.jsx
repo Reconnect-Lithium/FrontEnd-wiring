@@ -7,7 +7,7 @@ import {
   StyleSheet,
   TextInput,
   SafeAreaView,
-  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { Gallery } from "../components/Gallery";
@@ -44,12 +44,14 @@ export const Profile = ({ route }) => {
     "https://via.placeholder.com/150",
   ]);
   const [eventhistory, setEventHistory] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetchingCafe();
   }, []);
 
   const fetchingCafe = async () => {
+    setIsLoading(true);
     try {
       let id = userIdParams || userId;
       const token = await SecureStore.getItemAsync("auth");
@@ -82,10 +84,22 @@ export const Profile = ({ route }) => {
       setAddressEdit(cafeData.data.address);
       setDescEdit(cafeData.data.description);
       setProfilePhoto(cafeData.data.photo);
+
+      setIsLoading(false);
     } catch (error) {
       console.log(error);
+      setIsLoading(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Image source={require("../../assets/Logo.png")} style={styles.logo} />
+        <ActivityIndicator size="large" color="#5E17EB" />
+      </View>
+    );
+  }
 
   const pickImage = async () => {
     if (userIdParams === undefined || userIdParams == userId) {
@@ -268,6 +282,17 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: "#fff",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
+  },
+  logo: {
+    width: 150,
+    height: 150,
+    marginBottom: 20,
   },
   headerContainer: {
     alignItems: "center",
