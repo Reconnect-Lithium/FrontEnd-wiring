@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Modal,
   View,
@@ -7,34 +7,21 @@ import {
   StyleSheet,
   Dimensions,
   TouchableOpacity,
-} from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import { Ionicons } from '@expo/vector-icons';
+} from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import { Ionicons } from "@expo/vector-icons";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
-export const Gallery = ({ galleryPhoto, setGalleryPhoto }) => {
+export const Gallery = ({ galleryPhoto, handlePostGallery }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
-  
+
   const imageWidth = width / 2 - 8;
 
   const openModal = (item) => {
     setSelectedImage(item);
     setModalVisible(true);
-  };
-
-  const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-
-    if (!result.cancelled) {
-      setGalleryPhoto([...galleryPhoto, result.uri]);
-    }
   };
 
   return (
@@ -62,7 +49,10 @@ export const Gallery = ({ galleryPhoto, setGalleryPhoto }) => {
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
           <TouchableOpacity
-            style={[styles.imageWrapper, { width: imageWidth, height: imageWidth }]}
+            style={[
+              styles.imageWrapper,
+              { width: imageWidth, height: imageWidth },
+            ]}
             onPress={() => openModal(item)}
           >
             <Image source={{ uri: item }} style={styles.image} />
@@ -72,7 +62,7 @@ export const Gallery = ({ galleryPhoto, setGalleryPhoto }) => {
         columnWrapperStyle={styles.row}
       />
 
-      <TouchableOpacity style={styles.addButton} onPress={pickImage}>
+      <TouchableOpacity style={styles.addButton} onPress={handlePostGallery}>
         <Ionicons name="add-circle" size={50} color="#5E17EB" />
       </TouchableOpacity>
     </View>
@@ -106,9 +96,9 @@ const styles = StyleSheet.create({
   },
   modalView: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalImage: {
     width: width - 40,
@@ -118,11 +108,11 @@ const styles = StyleSheet.create({
   modalCloseButton: {
     width: width - 40,
     height: width - 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   addButton: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 10,
     right: 10,
   },

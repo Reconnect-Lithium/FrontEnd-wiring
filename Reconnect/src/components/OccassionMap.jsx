@@ -14,7 +14,11 @@ export default function OccasionListItem({
   const dateFormatEnd = new Date(data.endTime).toLocaleString();
   return (
     <View style={styles.card}>
-      <Image source={{ uri: data.eventPhoto }} style={styles.image} />
+      <View
+        style={{ flex: 1, justifyContent: "center", alignContent: "center" }}
+      >
+        <Image source={{ uri: data.eventPhoto }} style={styles.image} />
+      </View>
       <View
         style={{
           flexDirection: "column",
@@ -32,10 +36,12 @@ export default function OccasionListItem({
             </Text>
           </TouchableOpacity>
           <Text style={{ fontWeight: "bold" }}>{data.eventName}</Text>
-          <Text style={{ color: "gray" }}>by:{data.name}</Text>
-          <Text style={{ color: "gray" }}>start time :{data.startTime}</Text>
-          <Text style={{ color: "gray" }}>end time :{data.endTime}</Text>
-          <Text style={{ color: "gray" }}>category :{data.categoryName}</Text>
+          <Text style={{ color: "gray" }}>By : {data.name}</Text>
+          <Text style={{ color: "gray" }}>Start Time :</Text>
+          <Text style={{ color: "gray" }}>{dateFormatStart}</Text>
+          <Text style={{ color: "gray" }}>End Time :</Text>
+          <Text style={{ color: "gray" }}>{dateFormatEnd}</Text>
+          <Text style={{ color: "gray" }}>Category : {data.categoryName}</Text>
           <View style={{ flexDirection: "row", marginTop: 5 }}>
             <TouchableOpacity
               onPress={() => handleDirection(data)}

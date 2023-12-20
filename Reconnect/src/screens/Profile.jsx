@@ -119,6 +119,38 @@ export const Profile = ({ route }) => {
       }
     }
   };
+  const handlePostGallery = async () => {
+    if (userIdParams === undefined || userIdParams == userId) {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
+
+      if (!result.canceled) {
+        let localUri = result.assets[0].uri;
+        let filename = localUri.split("/").pop();
+
+        // Infer the type of the image
+        let match = /\.(\w+)$/.exec(filename);
+        let type = match ? `image/${match[1]}` : `image`;
+        const formData = new FormData();
+        formData.append("imgUrl", { uri: localUri, name: filename, type });
+        const token = await SecureStore.getItemAsync("auth");
+        await axios({
+          method: "post",
+          url: publicRoute + `/cafe/gallery/${cafeId}`,
+          data: formData,
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setGalleryPhoto((prev) => [...prev, result.assets[0].uri]);
+      }
+    }
+  };
 
   const handleEditProfile = async () => {
     if (editing) {
@@ -216,7 +248,12 @@ export const Profile = ({ route }) => {
       <Tab.Navigator>
         <Tab.Screen
           name="Gallery"
-          children={() => <Gallery galleryPhoto={galleryPhoto} />}
+          children={() => (
+            <Gallery
+              galleryPhoto={galleryPhoto}
+              handlePostGallery={handlePostGallery}
+            />
+          )}
         />
         <Tab.Screen
           name="History"
